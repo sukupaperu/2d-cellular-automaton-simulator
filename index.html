@@ -21,7 +21,15 @@
 	<section>
 		<h2>Générateur de programme du jeu de la vie</h2>
 		<form>
-			<div><p id="message-generateur">-</p></div>
+			<div>
+				<p>
+					Choisissez les options ci-dessous puis cliquez sur « Générer et télécharger le fichier » pour générer un fichier JSON
+					correspondant à un Jeu de la vie. Les cellules seront initialisées aléatoirement.
+				</p>
+				<p id="message-generateur">
+					
+				</p>
+			</div>
 			<div>
 				<p>Symboles utilisés</p>
 				<div>
@@ -35,6 +43,10 @@
 					<div><label for="largeur">Largeur</label><input type="number" min="1" id="largeur" value="10" size="5"></div>
 					<div><label for="hauteur">Hauteur</label><input type="number" min="1" id="hauteur" value="10" size="5"></div>
 				</div>
+			</div>
+			<div>
+				<p>Nombre d’itérations</p>
+				<div><label for="nb-iterations">Nombre d’itérations</label><input type="number" value="50" min="1" id="nb-iterations"/></div>
 			</div>
 			<div><input type="button" id="telecharger" value="Générer et télécharger le fichier"></div>
 		</form>
@@ -112,12 +124,14 @@ const inputLargeurEl = document.getElementById("largeur");
 const inputHauteurEl = document.getElementById("hauteur");
 const inputSymboleVivantEl = document.getElementById("symbole-vivant");
 const inputSymboleMortEl = document.getElementById("symbole-mort");
+const inputNbIterationsEl = document.getElementById("nb-iterations");
 
 telecharger.addEventListener("click", () => {
 	let largeur = parseInt(inputLargeurEl.value);
 	let hauteur = parseInt(inputHauteurEl.value);
 	let symboleVivant = inputSymboleVivantEl.value;
 	let symboleMort = inputSymboleMortEl.value;
+	let nb_iterations = inputNbIterationsEl.value;
 
 	if(Number.isNaN(largeur) || largeur <= 0) {
 		pMessageGenerateurEl.innerText = "Erreur : largeur invalide.";
@@ -139,10 +153,14 @@ telecharger.addEventListener("click", () => {
 		pMessageGenerateurEl.innerText = "Erreur : symboles de cellule ne peuvent pas être identiques.";
 		return;
 	}
+	if (!nb_iterations || nb_iterations < 1) {
+		pMessageGenerateurEl.innerText = "Erreur : Le nombre d’itérations doit être un entier naturel.";
+		return;
+	}
 
 	let tempsDebut = performance.now();
 	
-	let jsonStr = genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur);
+	let jsonStr = genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur, nb_iterations);
 
 	pMessageGenerateurEl.innerText = "Fichier généré en "+ (performance.now() - tempsDebut) +"ms.";
 

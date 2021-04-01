@@ -1,12 +1,12 @@
 'use strict';
 
-function genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur) {
+function genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur, iterations) {
 	if(symboleVivant.length !== 1 || symboleMort.length !== 1)
 		return null;
 
 	// génération des paramètres du fichier
 	let chaineJson = '{\n';
-	chaineJson += '\t"steps":30,\n';
+	chaineJson += '\t"steps":'+ iterations + ',\n';
 	chaineJson += '\t"symbols":"'+ symboleVivant +''+ symboleMort +'",\n';
 	chaineJson += '\t"extended-symbol":"'+ symboleMort +'",\n';
 
@@ -14,7 +14,7 @@ function genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur) {
 	for(let i = 0; i < largeur; i++) {
 		chaineGrid += '\t\t"';
 		for(let j = 0; j < hauteur; j++)
-			chaineGrid += symboleMort;
+			chaineGrid += (Math.floor(Math.random() * 2) === 1 ? symboleVivant : symboleMort);
 		chaineGrid += '"';
 		if(i !== largeur - 1)
 			chaineGrid += ',\n';
