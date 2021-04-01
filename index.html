@@ -8,30 +8,37 @@
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-	<canvas width="600" height="600"></canvas>
-	<form>
-		<div><p id="message-automate">Aucun fichier n'a été importé.</p></div>
-		<div><label for="importer">Importer :</label><input type="file" id="importer"></div>
-		<div><input type="button" id="demarrer" value="Démarrer la simulation" disabled=""></div>
-	</form>
-	<form>
-		<div><p id="message-generateur">-</p></div>
-		<div>
-			<p>Symboles utilisés</p>
+	<h1>Simulateur d'automate cellulaire</h1>
+	<section>
+		<canvas width="400" height="400"></canvas>
+		<form>
+			<div><p id="message-automate">Aucun fichier n'a été importé.</p></div>
+			<div><label for="importer">Importer :</label><input type="file" id="importer"></div>
+			<div><label for="vitesse">Vitesse d'exécution :</label><input id="vitesse" type="range" min="0" max="10" step="1" value="1"></div>
+			<div><input type="button" id="demarrer" value="Démarrer la simulation" disabled=""></div>
+		</form>
+	</section>
+	<section>
+		<h2>Générateur de programme du jeu de la vie</h2>
+		<form>
+			<div><p id="message-generateur">-</p></div>
 			<div>
-				<div><label for="symbole-vivant">Cellule vivante</label><input type="text" value="1" maxlength="1" size="1" id="symbole-vivant"></div>
-				<div><label for="symbole-mort">Cellule morte</label><input type="text" value="0" maxlength="1" size="1" id="symbole-mort"></div>	
+				<p>Symboles utilisés</p>
+				<div>
+					<div><label for="symbole-vivant">Cellule vivante</label><input type="text" value="1" maxlength="1" size="1" id="symbole-vivant"></div>
+					<div><label for="symbole-mort">Cellule morte</label><input type="text" value="0" maxlength="1" size="1" id="symbole-mort"></div>	
+				</div>
 			</div>
-		</div>
-		<div>
-			<p>Dimensions de la grille initiale</p>
 			<div>
-				<div><label for="largeur">Largeur</label><input type="number" min="1" id="largeur" value="10"></div>
-				<div><label for="hauteur">Hauteur</label><input type="number" min="1" id="hauteur" value="10"></div>
+				<p>Dimensions de la grille initiale</p>
+				<div>
+					<div><label for="largeur">Largeur</label><input type="number" min="1" id="largeur" value="10" size="5"></div>
+					<div><label for="hauteur">Hauteur</label><input type="number" min="1" id="hauteur" value="10" size="5"></div>
+				</div>
 			</div>
-		</div>
-		<div><input type="button" id="telecharger" value="Télécharger le fichier généré"></div>
-	</form>
+			<div><input type="button" id="telecharger" value="Générer et télécharger le fichier"></div>
+		</form>
+	</section>
 </body>
 <script src="jeu_de_la_vie.js"></script>
 <script src="lecture_fichier.js"></script>
@@ -44,9 +51,17 @@
 const canvasEl = document.getElementsByTagName("canvas")[0];
 const pMessageAutomateEl = document.getElementById("message-automate");
 const inputImportEl = document.getElementById("importer");
+const inputVitesseEl = document.getElementById("vitesse");
 const inputDemarrerEl = document.getElementById("demarrer");
 
-const automate = new Automate(canvasEl);
+const SET_PAUSE = "Pause";
+const END_PAUSE = "Reprendre";
+const RESTART = "Démarrer depuis le début";
+const END = "Simulation terminée.";
+const IMPORT_SUCCESS = "Import effectué avec succès.";
+
+const automate = new Automate(canvasEl, inputVitesseEl.value);
+
 const fichier = new ImportFichier(
 	inputImportEl,
 	(error) => {
@@ -54,34 +69,40 @@ const fichier = new ImportFichier(
 		inputDemarrerEl.setAttribute("disabled", "");
 	},
 	(data) => {
-		pMessageAutomateEl.innerText = "Import effectué avec succès.";
+		pMessageAutomateEl.innerText = IMPORT_SUCCESS;
 		inputDemarrerEl.removeAttribute("disabled");
 		automate.initialiserDonnees(data);
 		automate.raffraichirAffichage();
 	}
 );
 
+inputVitesseEl.addEventListener("input", () => {
+	automate.reglerIntervalle(inputVitesseEl.value);
+});
+
 inputDemarrerEl.addEventListener("click", () => {
-	if(inputDemarrerEl.getAttribute("value") === "Pause") {
-		inputDemarrerEl.setAttribute("value", "Reprendre la simulation");
+	if(inputDemarrerEl.getAttribute("value") === SET_PAUSE) {
+		inputDemarrerEl.setAttribute("value", END_PAUSE);
 		automate.pause();
 	} else {
-		inputDemarrerEl.setAttribute("value", "Pause");
+		if(inputDemarrerEl.getAttribute("value") === RESTART) {
+			automate.remettreEtatInitial();
+		}
+		inputDemarrerEl.setAttribute("value", SET_PAUSE);
 		inputImportEl.setAttribute("disabled", "");
 		automate.executer(
 			(pasNo, nbPas) => {
 				pMessageAutomateEl.innerText = "Étape "+ pasNo +"/"+ nbPas;
 			},
 			() => {
-				inputDemarrerEl.setAttribute("value", "Démarrer la simulation");
-				inputDemarrerEl.setAttribute("disabled", "");
+				inputDemarrerEl.setAttribute("value", RESTART);
 				inputImportEl.removeAttribute("disabled");
-				pMessageAutomateEl.innerText = "Simulation terminée.";
-			},
-			100 //temps entre chaque pas
+				pMessageAutomateEl.innerText = END;
+			}
 		);
 	}
 });
+
 
 /* --------------- partie générateur jeu de la vie ------------ */
 

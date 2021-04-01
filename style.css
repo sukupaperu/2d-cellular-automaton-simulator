@@ -1,26 +1,75 @@
-body {
-	margin: 0;
-	height: 100vh;
+html {
 	display: flex;
 	justify-content: center;
+	--col1: white;
+	--col2: #222;
+	background-color: var(--col2);
+	color: var(--col2);
+	font-family: Arial;
+}
+
+body {
+	display: flex;
 	align-items: center;
 	flex-direction: column;
-	background-color: #222;
-	color: white;
-	font-family: Arial;
-	font-size: 1em;
+	min-height: calc(100vh - 4em);
+	width: min(100vw - 4em, 800px);
+	margin: 1em 0;
+	padding: 1em;
+	background-color: var(--col1);
 }
-canvas {
-	background-color: black;
+
+section {
+	display: flex;
+	align-items: center;
+	width: 100%;
 }
+section:first-of-type {
+	border-bottom: 1px dotted var(--col2);
+	padding-bottom: 1em;
+}
+section>canvas {
+	background-color: var(--col2);
+	width: 400px;
+}
+section:first-of-type>form {
+	padding-left: 1em;
+}
+
 form {
 	display: flex;
 	flex-direction: column;
+	width: 100%;
 }
 form>div {
-	display: flex;
-	justify-content: center;
+	padding: .5em 0;
+	border-bottom: 1px dotted var(--col2);
+	text-align: center;
+}
+form>div:last-of-type {
+	border-bottom: none;
+}
+form>div p {
+	margin: 0.5em 0;
+}
+form label,
+form input{
+	vertical-align:middle;
+	font-style: italic;
+	margin-right: .25em;
+}
+
+section:last-of-type {
 	align-items: center;
-	padding: .5em;
-	border: 1px dotted white;
+	flex-direction: column;
+	justify-content: center;
+}
+section:last-of-type>form {
+	width: 50%;
+}
+
+@media (max-width:800px) {
+	section:first-of-type {
+		flex-direction: column;
+	}
 }

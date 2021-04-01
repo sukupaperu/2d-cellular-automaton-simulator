@@ -10,19 +10,28 @@ class Automate {
 
 	nbPas;
 	nbPasMax;
+	intervalle;
 	grille;
+	grilleInitiale;
 	tabRegles;
 
 	estInitialise;
 
 	timeOutId;
 
-	constructor(canvasEl) {
+	constructor(canvasEl, intervalle) {
 		this.canvasEl = canvasEl;
 		this.ctx = this.canvasEl.getContext('2d');
 
 		this.estInitialise = false;
 		this.timeOutId = null;
+
+		this.reglerIntervalle(intervalle);
+	}
+
+	reglerIntervalle(i) {
+		i = parseInt(i);
+		this.intervalle = i === 10 ? 0 : 1000/Math.pow(2, i);
 	}
 
 	mettreAjourDimensions(outrepasserTest) {
@@ -33,8 +42,12 @@ class Automate {
 			this.tailleAff.y = this.canvasEl.offsetHeight;
 			let ratioHL = this.tailleAff.x/this.tailleAff.y;
 			
-			let nbColonnes = this.grille[0].length - 2;
-			let nbLignes = this.grille.length - 2;
+			let nbColonnes = 1;
+			let nbLignes = 1;
+			if(this.grille) {
+				nbColonnes = this.grille[0].length - 2;
+				nbLignes = this.grille.length - 2;
+			}
 			let ratioLC = nbColonnes/nbLignes;
 
 			this.tailleCellule = Math.round(ratioHL > ratioLC ? this.tailleAff.y/nbLignes : this.tailleAff.x/nbColonnes);
@@ -52,6 +65,7 @@ class Automate {
 		this.nbPas = 0;
 		this.nbPasMax = data["nb-pas"];
 		this.grille = data["grille-initiale"];
+		this.grilleInitiale = this.copierGrille(this.grille);
 		this.tabRegles = data["regles"];
 
 		let listeSymboles = data["symboles"];
@@ -64,6 +78,12 @@ class Automate {
 
 		this.estInitialise = true;
 		this.mettreAjourDimensions(true);
+	}
+
+	remettreEtatInitial() {
+		this.nbPas = 0;
+		this.grille = this.copierGrille(this.grilleInitiale);
+		this.estInitialise = true;
 	}
 
 	raffraichirAffichage() {
@@ -90,13 +110,13 @@ class Automate {
 		}
 	}
 
-	obtenirCopieGrille() {
+	copierGrille(grille) {
 		let copieGrille = [];
 
-		for(let i = 0; i < this.grille.length; i++) {
+		for(let i = 0; i < grille.length; i++) {
 			copieGrille[i] = [];
-			for(let j = 0; j < this.grille[i].length; j++)
-				copieGrille[i][j] = this.grille[i][j];
+			for(let j = 0; j < grille[i].length; j++)
+				copieGrille[i][j] = grille[i][j];
 		}
 
 		return copieGrille;
@@ -107,7 +127,7 @@ class Automate {
 			window.clearTimeout(this.timeOutId);
 	}
 
-	executer(rappelPas, rappelFinExecution, intervalle) {
+	executer(rappelPas, rappelFinExecution) {
 		if(!this.estInitialise)
 			return;
 
@@ -115,7 +135,7 @@ class Automate {
 			if(this.nbPas++ < this.nbPasMax) {
 				let nbColonnes = this.grille[0].length;
 				let nbLignes = this.grille.length;
-				let copieGrille = this.obtenirCopieGrille();
+				let copieGrille = this.copierGrille(this.grille);
 
 				for(let i = 1; i < nbLignes - 1; i++) {
 					for(let j = 1; j < nbColonnes - 1; j++) {
@@ -136,13 +156,13 @@ class Automate {
 
 				rappelPas(this.nbPas, this.nbPasMax);
 
-				this.executer(rappelPas, rappelFinExecution, intervalle); ;
+				this.executer(rappelPas, rappelFinExecution); ;
 			} else {
 				this.estInitialise = false;
 				rappelFinExecution();
 			}
 
-		}, intervalle);
+		}, this.intervalle);
 
 	}
 
