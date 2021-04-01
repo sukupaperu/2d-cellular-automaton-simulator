@@ -42,18 +42,14 @@ class Automate {
 			this.tailleAff.y = this.canvasEl.offsetHeight;
 			let ratioHL = this.tailleAff.x/this.tailleAff.y;
 			
-			let nbColonnes = 1;
-			let nbLignes = 1;
-			if(this.grille) {
-				nbColonnes = this.grille[0].length - 2;
-				nbLignes = this.grille.length - 2;
-			}
+			let	nbColonnes = this.grille[0].length - 2;
+			let	nbLignes = this.grille.length - 2;
 			let ratioLC = nbColonnes/nbLignes;
 
-			this.tailleCellule = Math.round(ratioHL > ratioLC ? this.tailleAff.y/nbLignes : this.tailleAff.x/nbColonnes);
+			this.tailleCellule = (ratioHL > ratioLC ? this.tailleAff.y/nbLignes : this.tailleAff.x/nbColonnes);
 
-			this.decalageAff.x = parseInt((this.tailleAff.x - this.tailleCellule*nbColonnes)/2);
-			this.decalageAff.y = parseInt((this.tailleAff.y - this.tailleCellule*nbLignes)/2);
+			this.decalageAff.x = (this.tailleAff.x - this.tailleCellule*nbColonnes)/2;
+			this.decalageAff.y = (this.tailleAff.y - this.tailleCellule*nbLignes)/2;
 		}
 	}
 
@@ -73,7 +69,7 @@ class Automate {
 		this.tabCouleurs = {};
 		for(let i = 0; i < nbSymboles; i++) {
 			let symbole = listeSymboles.charAt(i);
-			this.tabCouleurs[symbole] = "hsl(" + 360*(i/nbSymboles) + ",80%,60%)";
+			this.tabCouleurs[symbole] = "hsl(" + (360*(i/nbSymboles) + 45)%360 + ",80%,65%)";
 		}
 
 		this.estInitialise = true;
@@ -102,7 +98,7 @@ class Automate {
 				let coordY = this.tailleCellule*y + this.decalageAff.y;
 
 				this.ctx.fillStyle = this.tabCouleurs[symbole];
-				this.ctx.fillRect(coordX, coordY, this.tailleCellule, this.tailleCellule);
+				this.ctx.fillRect(coordX, coordY, this.tailleCellule + 1, this.tailleCellule + 1);
 
 				this.ctx.fillStyle = "rgb(255,255,255)";
 				this.ctx.fillText(symbole, coordX + this.tailleCellule*.5, coordY + this.tailleCellule*.7);
