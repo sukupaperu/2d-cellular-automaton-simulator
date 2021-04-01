@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Simulateur d'automate cellulaire</title>
+	<meta charset=utf-8>
+	<meta name=description content="">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<canvas width="600" height="600"></canvas>
+	<form>
+		<div><p id="message-automate">Aucun fichier n'a été importé.</p></div>
+		<div><label for="importer">Importer :</label><input type="file" id="importer"></div>
+		<div><input type="button" id="demarrer" value="Démarrer la simulation" disabled=""></div>
+	</form>
+	<form>
+		<div><p id="message-generateur">-</p></div>
+		<div>
+			<p>Symboles utilisés</p>
+			<div>
+				<div><label for="symbole-vivant">Cellule vivante</label><input type="text" value="1" maxlength="1" size="1" id="symbole-vivant"></div>
+				<div><label for="symbole-mort">Cellule morte</label><input type="text" value="0" maxlength="1" size="1" id="symbole-mort"></div>	
+			</div>
+		</div>
+		<div>
+			<p>Dimensions de la grille initiale</p>
+			<div>
+				<div><label for="largeur">Largeur</label><input type="number" min="1" id="largeur" value="10"></div>
+				<div><label for="hauteur">Hauteur</label><input type="number" min="1" id="hauteur" value="10"></div>
+			</div>
+		</div>
+		<div><input type="button" id="telecharger" value="Télécharger le fichier généré"></div>
+	</form>
+</body>
+<script src="jeu_de_la_vie.js"></script>
+<script src="lecture_fichier.js"></script>
+<script src="automate.js"></script>
+<script>
+"use strict";
+
+/* --------------- partie simulateur automate cellulaire 2D ------------ */
+
+const canvasEl = document.getElementsByTagName("canvas")[0];
+const pMessageAutomateEl = document.getElementById("message-automate");
+const inputImportEl = document.getElementById("importer");
+const inputDemarrerEl = document.getElementById("demarrer");
+
+const automate = new Automate(canvasEl);
+const fichier = new ImportFichier(
+	inputImportEl,
+	(error) => {
+		pMessageAutomateEl.innerText = error;
+		inputDemarrerEl.setAttribute("disabled", "");
+	},
+	(data) => {
+		pMessageAutomateEl.innerText = "Import effectué avec succès.";
+		inputDemarrerEl.removeAttribute("disabled");
+		automate.initialiserDonnees(data);
+		automate.raffraichirAffichage();
+	}
+);
+
+inputDemarrerEl.addEventListener("click", () => {
+	if(inputDemarrerEl.getAttribute("value") === "Pause") {
+		inputDemarrerEl.setAttribute("value", "Reprendre la simulation");
+		automate.pause();
+	} else {
+		inputDemarrerEl.setAttribute("value", "Pause");
+		inputImportEl.setAttribute("disabled", "");
+		automate.executer(
+			(pasNo, nbPas) => {
+				pMessageAutomateEl.innerText = "Étape "+ pasNo +"/"+ nbPas;
+			},
+			() => {
+				inputDemarrerEl.setAttribute("value", "Démarrer la simulation");
+				inputDemarrerEl.setAttribute("disabled", "");
+				inputImportEl.removeAttribute("disabled");
+				pMessageAutomateEl.innerText = "Simulation terminée.";
+			},
+			100 //temps entre chaque pas
+		);
+	}
+});
+
+/* --------------- partie générateur jeu de la vie ------------ */
+
+const pMessageGenerateurEl = document.getElementById("message-generateur");
+const inputTelechargerEl = document.getElementById("telecharger");
+const inputLargeurEl = document.getElementById("largeur");
+const inputHauteurEl = document.getElementById("hauteur");
+const inputSymboleVivantEl = document.getElementById("symbole-vivant");
+const inputSymboleMortEl = document.getElementById("symbole-mort");
+
+telecharger.addEventListener("click", () => {
+	let largeur = parseInt(inputLargeurEl.value);
+	let hauteur = parseInt(inputHauteurEl.value);
+	let symboleVivant = inputSymboleVivantEl.value;
+	let symboleMort = inputSymboleMortEl.value;
+
+	if(Number.isNaN(largeur) || largeur <= 0) {
+		pMessageGenerateurEl.innerText = "Erreur : largeur invalide.";
+		return;
+	}
+	if(Number.isNaN(hauteur) || hauteur <= 0) {
+		pMessageGenerateurEl.innerText = "Erreur : hauteur invalide.";
+		return;
+	}
+	if(symboleVivant.length !== 1) {
+		pMessageGenerateurEl.innerText = "Erreur : symbole de cellule vivante invalide.";
+		return;
+	}
+	if(symboleMort.length !== 1) {
+		pMessageGenerateurEl.innerText = "Erreur : symbole de cellule morte invalide.";
+		return;
+	}
+	if(symboleVivant === symboleMort) {
+		pMessageGenerateurEl.innerText = "Erreur : symboles de cellule ne peuvent pas être identiques.";
+		return;
+	}
+
+	let tempsDebut = performance.now();
+	
+	let jsonStr = genJsonReglesJDLV(symboleVivant, symboleMort, largeur, hauteur);
+
+	pMessageGenerateurEl.innerText = "Fichier généré en "+ (performance.now() - tempsDebut) +"ms.";
+
+	exporterVersFichierJson(jsonStr, "jeu_de_la_vie");
+});
+
+</script>
+</html>
